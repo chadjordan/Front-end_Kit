@@ -2,6 +2,7 @@ var gulp = require('gulp');
 
 //include plugins
 var jshint = require('gulp-jshint'),
+    jsstylish = require('jshint-stylish'),
     changed = require('gulp-changed'),
     plumber = require('gulp-plumber'),
     imagemin = require('gulp-imagemin'),
@@ -89,10 +90,12 @@ gulp.task('vendorScripts', function() {
 });
 
 gulp.task('jshint', function() {
-    gulp.src(SRC + 'js/main.js')
-        .pipe(plumber())
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'));
+    gulp.src(SRC + 'js/dev-js/main.js')
+        .pipe(jshint('.jshintrc'))
+        .pipe(jshint.reporter('jshint-stylish'))
+        .on('error', notify.onError(function(error) {
+            return "Gulp Error: " + error.message;
+        }))
 });
 
 gulp.task('imagemin', function() {
@@ -107,7 +110,7 @@ gulp.task('imagemin', function() {
 
 gulp.task('watch', ['sass', 'cssMinify', 'jscompress'], function() {
     gulp.watch([SRC + 'img/**/*'], reload);
-    gulp.watch(SRC + "js/**/*.js", ['jshint', reload]);
+    gulp.watch(SRC + "js/**/*.js", ['jshint', 'jscompress', reload]);
     gulp.watch(SRC + "scss/**/*.scss", ['sass', 'cssMinify', reload]);
     gulp.watch(SRC + "css/*.*", ['cssMinify', reload]);
     gulp.watch(SRC + "vendors/**/*.js", ['vendorScripts', reload]);
@@ -144,22 +147,6 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('production'))
 
 });
-
-gulp.task('connect-sync', function() {
-  connect.server({ base: 'application', port: 8010, keepalive: true});
- });
-
-gulp.task('sync',['connect-sync'], function() {
-    browsersync({
-        proxy: '127.0.0.1:8010',
-        port: 8080,
-        open: true,
-        notify: false
-    });
-    gulp.watch(['./application/**/*.php'], reload);
-});
-    
-
 
 gulp.task('default', ['serve', 'vendorScripts', 'jscompress', 'jshint']);
 
