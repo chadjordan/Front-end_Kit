@@ -14,9 +14,7 @@ var jshint = require('gulp-jshint'),
     sass = require('gulp-sass'),
     vendor = require('gulp-concat-vendor'),
     browsersync = require('browser-sync'),
-    reload = browsersync.reload,
-    connect = require('gulp-connect-php'),
-    httpProxy = require('http-proxy');
+    reload = browsersync.reload;
 
 //custom path url
 var SRC = './application/assets/',
@@ -93,9 +91,20 @@ gulp.task('jshint', function() {
     gulp.src(SRC + 'js/dev-js/main.js')
         .pipe(jshint('.jshintrc'))
         .pipe(jshint.reporter('jshint-stylish'))
-        .on('error', notify.onError(function(error) {
-            return "Gulp Error: " + error.message;
-        }))
+        // Use gulp-notify as jshint reporter
+        .pipe(notify(function (file) {
+          if (file.jshint.success) {
+            // Don't show something if success
+            return false;
+          }
+
+          var errors = file.jshint.results.map(function (data) {
+            if (data.error) {
+              return "(" + data.error.line + ':' + data.error.character + ') ' + data.error.reason;
+            }
+          }).join("\n");
+          return file.relative + " (" + file.jshint.results.length + " errors)\n" + errors;
+        }));
 });
 
 gulp.task('imagemin', function() {
